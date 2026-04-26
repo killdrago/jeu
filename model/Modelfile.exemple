@@ -1,0 +1,23 @@
+# ==================================================
+#  FICHIER MODELFILE EXEMPLE
+# ==================================================
+#  1. Renommez ce fichier en "Modelfile" (sans extension)
+#  2. Remplacez le chemin ci-dessous par votre fichier .gguf
+#  3. Dans un terminal, dans ce dossier, lancez :
+#       ollama create mon-model -f ./model/Modelfile
+#  4. Cliquez sur [AUTO] dans l'interface pour le détecter
+# ==================================================
+
+# Chemin vers votre fichier .gguf
+FROM ./mon-modele.gguf
+
+# Paramètres optionnels
+PARAMETER temperature 0.7
+PARAMETER top_p 0.9
+PARAMETER num_ctx 4096
+
+# Message système optionnel
+SYSTEM """
+Tu es un assistant IA local. Tu réponds en français de manière précise et concise.
+Tu peux aider à modifier du code, analyser des fichiers, et répondre à des questions techniques.
+"""

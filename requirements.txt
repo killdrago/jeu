@@ -1,0 +1,8 @@
+# =========================================
+#  ADMIN CONSOLE IA — Dépendances Python
+# =========================================
+#  Installer avec : pip install -r requirements.txt
+# =========================================
+
+PyQt6>=6.6.0
+requests>=2.31.0
