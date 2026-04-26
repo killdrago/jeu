@@ -1,8 +1,6 @@
 """
 Gestionnaire de lancement/rechargement de l'app preview et de l'app de base.
-- Lance l'app preview dans un sous-processus isolé
-- Tue le sous-processus en cas de refus
-- Relance l'app de base après validation
+
 """
 
 import os
@@ -13,6 +11,32 @@ from typing import Optional
 
 from PyQt6.QtCore import QObject, QThread, pyqtSignal, QTimer
 
+def _check_pyqt6_available() -> bool:
+    """Vérifie que PyQt6 est disponible dans sys.executable."""
+    try:
+        result = subprocess.run(
+            [sys.executable, "-c", "import PyQt6"],
+            capture_output=True, timeout=10
+        )
+        return result.returncode == 0
+    except Exception:
+        return False
+
+def _ensure_pyqt6() -> tuple[bool, str]:
+    """Installe PyQt6 si absent. Retourne (succès, message)."""
+    if _check_pyqt6_available():
+        return True, "PyQt6 déjà disponible"
+    try:
+        result = subprocess.run(
+            [sys.executable, "-m", "pip", "install", "PyQt6>=6.7.0", "--quiet"],
+            capture_output=True, text=True, timeout=120
+        )
+        if result.returncode == 0:
+            return True, "PyQt6 installé avec succès"
+        else:
+            return False, f"Échec installation: {result.stderr[:200]}"
+    except Exception as e:
+        return False, str(e)
 
 class AppProcess(QThread):
     """Thread qui surveille un sous-processus d'app."""
@@ -67,7 +91,6 @@ class AppProcess(QThread):
         self._stop_requested = True
         if self._process and self._process.poll() is None:
             try:
-                # Windows : terminate, Unix : SIGTERM
                 self._process.terminate()
                 try:
                     self._process.wait(timeout=3)
@@ -75,7 +98,6 @@ class AppProcess(QThread):
                     self._process.kill()
             except Exception:
                 pass
-
 
 class AppReloader(QObject):
     """
@@ -112,6 +134,18 @@ class AppReloader(QObject):
         """Lance l'app depuis _preview/ dans un process séparé."""
         # Stoppe un preview existant
         self.stop_preview()
+
+        # Vérifie que PyQt6 est disponible dans l'interpréteur courant
+        self.status_changed.emit("🔍 Vérification PyQt6 pour le preview...")
+        ok, msg = _ensure_pyqt6()
+        if not ok:
+            self.status_changed.emit(f"❌ PyQt6 indisponible: {msg}")
+            self.preview_crashed.emit(
+                f"PyQt6 non disponible dans {sys.executable}\n"
+                f"Erreur: {msg}\n"
+                f"Lance manuellement: pip install PyQt6"
+            )
+            return
 
         main_script = os.path.join(self.preview_dir, "main.py")
         if not os.path.exists(main_script):
@@ -179,7 +213,7 @@ class AppReloader(QObject):
             self._base_process.process_output.connect(self.base_output)
             self._base_process.start()
             self.status_changed.emit(
-                f"✅ App de base rechargée (PID {self._base_process._process.pid if self._base_process._process else '?'})"
+                f"✅ App de base rechargée"
             )
 
         # Petit délai pour que les fichiers soient bien écrits
