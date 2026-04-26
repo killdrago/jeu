@@ -1,9 +1,0 @@
-{
-  "ollama_url": "http://localhost:11434",
-  "last_model": "llava:13b",
-  "theme": "dark",
-  "font_size": 13,
-  "auto_snapshot": true,
-  "preview_port": 5555,
-  "window_geometry": "01d9d0cb00030000000001430000004e000006ba000003be000001430000006d000006ba000003be00000000000000000780000001430000006d000006ba000003be"
-}
