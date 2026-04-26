@@ -1,0 +1,25 @@
+# Exemple de Modelfile pour utiliser un .gguf local avec Ollama
+# Renomme ce fichier en "Modelfile" et adapte le chemin
+
+FROM ./mon-modele.gguf
+
+# Paramètres du modèle
+PARAMETER temperature 0.7
+PARAMETER top_p 0.9
+PARAMETER top_k 40
+PARAMETER num_ctx 4096
+PARAMETER repeat_penalty 1.1
+
+# Prompt système par défaut (optionnel — l'app injecte le sien)
+SYSTEM """
+Tu es un assistant IA utile et précis. Tu réponds en français.
+"""
+
+# Pour créer le modèle dans Ollama:
+# ollama create mon-modele -f ./model/Modelfile
+#
+# Pour vérifier qu'il est bien chargé:
+# ollama list
+#
+# Pour le tester en ligne de commande:
+# ollama run mon-modele "Bonjour !"
